@@ -67,11 +67,13 @@ Android n'accepte une mise à jour que si elle est signée avec la même clé. L
 build reçoit une clé temporaire et il faut désinstaller avant de mettre à jour. Pour (re)créer la clé :
 
 ```bash
-keytool -genkeypair -v -keystore farmingcompanion.keystore -alias androiddebugkey \
-  -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android \
-  -dname "CN=FarmingCompanion"
-base64 -w0 farmingcompanion.keystore | gh secret set ANDROID_KEYSTORE_BASE64
+# Clé EC compacte (≈ 700 caractères en base64, facile à coller dans un secret GitHub)
+keytool -genkeypair -keystore farmingcompanion.jks -storetype JKS -alias androiddebugkey \
+  -keyalg EC -groupname secp256r1 -validity 10000 -storepass android -keypass android -dname "CN=FC"
+base64 -w0 farmingcompanion.jks | gh secret set ANDROID_KEYSTORE_BASE64
 ```
+
+L'APK est construit pour **arm64-v8a** uniquement (tous les téléphones Android récents), ce qui le rend environ 3 fois plus léger.
 
 Pour une diffusion sur le Play Store, utiliser plutôt `npx eas-cli build -p android --profile production`.
 

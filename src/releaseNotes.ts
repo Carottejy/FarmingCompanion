@@ -11,6 +11,15 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.0.1',
+    date: '2026-11-11',
+    notes: [
+      'APK Android environ 3 fois plus léger (téléphones arm64 uniquement).',
+      'Clé de signature définitive : les prochaines mises à jour s\'installeront par-dessus sans désinstaller.',
+      'iPhone : application vérifiée sur iOS, clavier des coordonnées GPS avec signe moins.',
+    ],
+  },
+  {
     version: '1.0.0',
     date: '2026-11-11',
     notes: [
