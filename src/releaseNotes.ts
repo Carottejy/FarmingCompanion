@@ -11,6 +11,16 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.1.0',
+    date: '2026-11-11',
+    notes: [
+      'iPhone : web app installable sur l\'écran d\'accueil, qui fonctionne entièrement hors ligne (carottejy.github.io/FarmingCompanion).',
+      'Nouvelle icône carotte.',
+      'Message clair quand la recherche de mise à jour est impossible faute de réseau.',
+      'Suppression d\'une planche possible dans la version web.',
+    ],
+  },
+  {
     version: '1.0.1',
     date: '2026-11-11',
     notes: [

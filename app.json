@@ -2,14 +2,14 @@
   "expo": {
     "name": "FarmingCompanion",
     "slug": "FarmingCompanion",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.carottejy.farmingcompanion",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "La position du jardin sert à adapter le calendrier de semis à votre climat.",
         "ITSAppUsesNonExemptEncryption": false
@@ -24,7 +24,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.carottejy.farmingcompanion",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
@@ -32,7 +32,13 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "single",
+      "name": "FarmingCompanion",
+      "shortName": "Farming",
+      "lang": "fr",
+      "themeColor": "#2E7D32",
+      "backgroundColor": "#F7F5EF"
     },
     "scheme": "farmingcompanion",
     "description": "Conseils de plantation pour les planches de jardin partagé : rotation, calendrier et climat.",
@@ -44,6 +50,9 @@
           "locationWhenInUsePermission": "La position du jardin sert à adapter le calendrier de semis à votre climat."
         }
       ]
-    ]
+    ],
+    "experiments": {
+      "baseUrl": "/FarmingCompanion"
+    }
   }
 }

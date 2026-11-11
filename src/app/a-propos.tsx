@@ -16,7 +16,7 @@ type Status =
   | { kind: 'error'; message: string };
 
 export default function AProposScreen() {
-  const version = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '0.0.0';
+  const version = (Platform.OS !== 'web' && Application.nativeApplicationVersion) || Constants.expoConfig?.version || '0.0.0';
   const build = Application.nativeBuildVersion;
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const [remote, setRemote] = useState<RemoteRelease[]>([]);
@@ -62,7 +62,7 @@ export default function AProposScreen() {
           Version installée : <Text style={{ fontWeight: '700' }}>{version}</Text>
           {build ? ` (build ${build})` : ''}
         </Text>
-        <Text style={styles.muted}>Plateforme : {Platform.OS === 'ios' ? 'iPhone / iPad' : Platform.OS === 'android' ? 'Android' : Platform.OS}</Text>
+        <Text style={styles.muted}>Plateforme : {Platform.OS === 'ios' ? 'iPhone / iPad' : Platform.OS === 'android' ? 'Android' : 'Web app (fonctionne hors ligne)'}</Text>
       </Card>
 
       <SectionTitle>Mises à jour</SectionTitle>
@@ -84,6 +84,9 @@ export default function AProposScreen() {
             />
             {Platform.OS === 'android' && (
               <Text style={styles.muted}>Ouvrez le fichier téléchargé pour installer par-dessus la version actuelle (vos planches sont conservées).</Text>
+            )}
+            {Platform.OS === 'web' && (
+              <Text style={styles.muted}>Web app : fermez-la complètement puis rouvrez-la (avec du réseau) pour charger la nouvelle version.</Text>
             )}
             {Platform.OS === 'ios' && (
               <Text style={styles.muted}>Sur iPhone, la mise à jour s'installe depuis TestFlight ou l'App Store (ou se recharge automatiquement dans Expo Go).</Text>

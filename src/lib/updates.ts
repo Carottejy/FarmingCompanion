@@ -45,7 +45,12 @@ export function parseReleases(json: unknown): RemoteRelease[] {
 }
 
 export async function fetchReleases(apiUrl: string): Promise<RemoteRelease[]> {
-  const res = await fetch(apiUrl, { headers: { Accept: 'application/vnd.github+json' } });
+  let res: Response;
+  try {
+    res = await fetch(apiUrl, { headers: { Accept: 'application/vnd.github+json' } });
+  } catch {
+    throw new Error('Hors connexion : impossible de vérifier les mises à jour pour le moment.');
+  }
   if (res.status === 404) throw new Error('Dépôt introuvable ou privé : rendez le dépôt public pour activer la recherche de mises à jour.');
   if (!res.ok) throw new Error(`GitHub a répondu ${res.status}`);
   return parseReleases(await res.json());

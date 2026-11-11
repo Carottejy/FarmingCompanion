@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CropPicker } from '../components/CropPicker';
 import { Button, Card, SectionTitle } from '../components/ui';
 import { COLORS } from '../config';
@@ -22,11 +22,17 @@ export default function PlanchesScreen() {
 
   const now = new Date();
 
-  const confirmDelete = (id: string, name: string) =>
+  const confirmDelete = (id: string, name: string) => {
+    // Alert.alert n'affiche rien sur le web (web app iPhone) : on utilise la boîte native du navigateur.
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Supprimer « ${name} » et son historique ?`)) deletePlanche(id);
+      return;
+    }
     Alert.alert('Supprimer la planche', `Supprimer « ${name} » et son historique ?`, [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: () => deletePlanche(id) },
     ]);
+  };
 
   const stepMonth = (delta: number) => {
     if (!pending) return;

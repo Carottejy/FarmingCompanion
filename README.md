@@ -77,14 +77,24 @@ L'APK est construit pour **arm64-v8a** uniquement (tous les téléphones Android
 
 Pour une diffusion sur le Play Store, utiliser plutôt `npx eas-cli build -p android --profile production`.
 
-## iPhone
+## iPhone : web app hors ligne
 
-Apple n'autorise pas l'installation d'APK (format Android). Trois options :
+Apple n'autorise pas l'installation d'APK. Sur iPhone, FarmingCompanion s'utilise comme **web app installable**,
+qui fonctionne ensuite **sans réseau** :
 
-- **Expo Go** (gratuit) : `npm start` puis scanner le QR code avec l'appareil photo — idéal pour tester.
-- **TestFlight / App Store** : nécessite un compte Apple Developer (99 €/an) puis
-  `npx eas-cli build -p ios --profile production` et `npx eas-cli submit -p ios`.
-- La recherche de mise à jour de l'onglet *À propos* fonctionne aussi sur iPhone : elle ouvre la page de la release.
+1. Ouvrir **https://carottejy.github.io/FarmingCompanion/** dans **Safari** (avec du réseau, une seule fois).
+2. Bouton **Partager** → **Sur l'écran d'accueil** → **Ajouter**.
+3. Lancer l'app depuis l'icône carotte : tout est mis en cache, elle marche en mode avion.
+   Les planches sont enregistrées sur le téléphone.
+
+Mises à jour : à chaque push sur `main`, le workflow **Web app (GitHub Pages)** republie le site ; l'iPhone récupère
+la nouvelle version la prochaine fois que l'app est ouverte avec du réseau (fermer puis rouvrir l'app).
+
+Autres options : **Expo Go** (`npm start` + QR code, nécessite l'ordinateur) ou une vraie app via **TestFlight /
+App Store** (compte Apple Developer, 99 €/an, `npx eas-cli build -p ios`).
+
+La version web est générée par `npm run build:web` (export Expo + `scripts/make-pwa.mjs` qui ajoute le manifeste,
+les icônes et le service worker hors ligne).
 
 ## Avertissement
 
