@@ -10,7 +10,7 @@ import { join, relative, sep } from 'node:path';
 
 const dist = process.argv[2] ?? 'dist';
 const app = JSON.parse(readFileSync('app.json', 'utf8')).expo;
-const base = (app.experiments?.baseUrl ?? '').replace(/\/$/, '');
+const base = (process.env.WEB_BASE_URL ?? '').replace(/\/$/, '');
 
 const THEME = '#2E7D32';
 const BG = '#F7F5EF';

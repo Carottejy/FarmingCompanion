@@ -11,6 +11,13 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.1.1',
+    date: '2026-11-11',
+    notes: [
+      'Correctif : le réglage propre à la web app n\'est plus appliqué aux applications Android et iOS (emplacement des images).',
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-11-11',
     notes: [

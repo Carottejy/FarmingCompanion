@@ -116,6 +116,7 @@ jobs:
 
       - name: Upload artifact
         if: steps.v.outputs.exists != 'true'
+        continue-on-error: true # copie de confort : l'APK est déjà attaché à la release
         uses: actions/upload-artifact@v4
         with:
           name: FarmingCompanion-apk
