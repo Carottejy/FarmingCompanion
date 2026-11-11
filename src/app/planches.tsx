@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CropPicker } from '../components/CropPicker';
@@ -108,6 +109,15 @@ export default function PlanchesScreen() {
               </Pressable>
             </View>
           ))}
+
+          <Button
+            small
+            title={p.history.length ? `🌱 Conseils après ${precedentInfo(p.history[0].cropId)?.name ?? 'la dernière culture'}` : '🌱 Conseils pour cette planche'}
+            onPress={() =>
+              // t : force la prise en compte même si la même planche est demandée deux fois de suite
+              router.navigate({ pathname: '/', params: { planche: p.id, t: String(Date.now()) } })
+            }
+          />
 
           {pending?.plancheId === p.id ? (
             <View style={styles.pending}>

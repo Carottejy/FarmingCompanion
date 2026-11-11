@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { CropPicker } from '../components/CropPicker';
@@ -39,9 +40,19 @@ export default function ConseilsScreen() {
   const [halfMonth, setHalfMonth] = useState<number | null>(null); // null = aujourd'hui
   const [showBad, setShowBad] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [autoSelected, setAutoSelected] = useState(false);
+
+  // Bouton « Conseils après … » de l'onglet Planches : présélectionne la planche (et donc sa dernière culture).
+  const params = useLocalSearchParams<{ planche?: string; t?: string }>();
+  useEffect(() => {
+    if (params.planche && planches.some((p) => p.id === params.planche)) {
+      setPlancheId(params.planche);
+      setAutoSelected(true);
+      setExpanded(null);
+    }
+  }, [params.planche, params.t, planches.length]);
 
   // Les planches sont chargées en asynchrone : sélectionner la première dès qu'elle existe.
-  const [autoSelected, setAutoSelected] = useState(false);
   useEffect(() => {
     if (!autoSelected && planches.length > 0) {
       setPlancheId((id) => id ?? planches[0].id);
