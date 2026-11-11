@@ -53,9 +53,9 @@ Le code métier (indépendant de l'interface) est dans `src/lib/` : `crops.ts` (
 
 1. Incrémenter `version` dans `app.json` et `package.json` (et `android.versionCode` / `ios.buildNumber`).
 2. Ajouter une entrée en tête de `src/releaseNotes.ts`.
-3. `git tag v1.1.0 && git push origin main --tags`
+3. Pousser sur `main` (`git push`).
 
-Le workflow **Android release** construit l'APK et crée la release GitHub. L'onglet *À propos* des téléphones
+Le workflow **Android release** voit que la release `v1.1.0` n'existe pas encore : il construit l'APK, crée le tag et la release GitHub. L'onglet *À propos* des téléphones
 déjà installés détecte alors la nouvelle version et propose le téléchargement.
 
 > **Le dépôt doit être public** pour que l'application puisse lire les releases sans authentification.
