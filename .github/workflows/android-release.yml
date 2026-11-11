@@ -1,0 +1,87 @@
+name: Android release (APK)
+
+# Publier une version : mettre à jour la version (app.json, package.json, src/releaseNotes.ts),
+# puis `git tag v1.1.0 && git push origin v1.1.0`. Ce workflow construit l'APK et crée la
+# release GitHub que l'onglet « À propos » de l'application détecte.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install
+        run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Version
+        id: v
+        run: |
+          VERSION=$(node -p "require('./app.json').expo.version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME#v}" != "$VERSION" ]; then
+            echo "::error::Le tag ${GITHUB_REF_NAME} ne correspond pas à app.json ($VERSION)"; exit 1
+          fi
+
+      - name: Generate native Android project
+        run: npx expo prebuild --platform android --no-install
+
+      # Clé de signature stable : sans elle, chaque build aurait une clé différente et
+      # Android refuserait d'installer la mise à jour par-dessus l'ancienne version.
+      - name: Signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > android/app/debug.keystore
+            echo "Clé de signature du dépôt utilisée."
+          else
+            echo "::warning::Secret ANDROID_KEYSTORE_BASE64 absent : APK signé avec une clé temporaire (les mises à jour exigeront une désinstallation)."
+          fi
+
+      - name: Build APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Rename APK
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/FarmingCompanion-v${{ steps.v.outputs.version }}.apk"
+
+      - name: Release notes
+        run: npx tsx scripts/release-body.ts "${{ steps.v.outputs.version }}" > dist/body.md
+
+      - name: Publish GitHub release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: FarmingCompanion ${{ steps.v.outputs.version }}
+          body_path: dist/body.md
+          files: dist/*.apk
+
+      - name: Upload artifact (manual runs)
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: FarmingCompanion-apk
+          path: dist/*.apk

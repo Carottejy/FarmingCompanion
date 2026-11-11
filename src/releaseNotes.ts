@@ -1,0 +1,24 @@
+/**
+ * Notes de version embarquées dans l'application (affichées hors connexion).
+ * À chaque nouvelle version : ajouter une entrée en tête ET mettre à jour "version" dans app.json
+ * et package.json, puis pousser un tag vX.Y.Z (le workflow GitHub publie l'APK).
+ */
+export interface ReleaseNote {
+  version: string;
+  date: string;
+  notes: string[];
+}
+
+export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    version: '1.0.0',
+    date: '2026-11-11',
+    notes: [
+      'Première version de FarmingCompanion.',
+      'Onglet Conseils : cultures classées de la meilleure à la moins adaptée selon la zone GPS, la date et le précédent de la planche.',
+      'Onglet Planches : gestion des planches et de leur historique de cultures (contrôle des délais de retour par famille).',
+      'Onglet Paramètres : position GPS (automatique ou manuelle), zone climatique et décalage du calendrier.',
+      'Onglet À propos : version, recherche de mise à jour et notes de version.',
+    ],
+  },
+];
