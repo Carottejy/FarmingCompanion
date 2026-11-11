@@ -83,10 +83,16 @@ jobs:
             echo "::warning::Le secret ANDROID_KEYSTORE_BASE64 n'est pas un keystore valide (alias androiddebugkey / mot de passe android) : clé temporaire utilisée."
           fi
 
+      - name: Gradle cache
+        if: steps.v.outputs.exists != 'true'
+        uses: gradle/actions/setup-gradle@v4
+
+      # arm64-v8a uniquement : tous les téléphones Android récents (depuis ~2017).
+      # Divise la taille de l'APK et la durée du build par 3 environ.
       - name: Build APK
         if: steps.v.outputs.exists != 'true'
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
       - name: Rename APK
         if: steps.v.outputs.exists != 'true'

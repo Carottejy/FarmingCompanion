@@ -1,0 +1,48 @@
+name: iOS build (vérification)
+
+# Compile l'application iOS (simulateur, sans signature) pour garantir qu'elle fonctionne
+# sur iPhone. L'installation sur un vrai iPhone passe par Expo Go, TestFlight ou l'App Store
+# (voir README).
+
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'app.json', 'package.json', 'package-lock.json', '.github/workflows/ios-build.yml']
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate native iOS project (+ CocoaPods)
+        run: npx expo prebuild --platform ios
+
+      - name: Build for iOS simulator
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace ios/FarmingCompanion.xcworkspace \
+            -scheme FarmingCompanion \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tail -n 80
+
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: FarmingCompanion-ios-simulator
+          path: build/Build/Products/Release-iphonesimulator/*.app

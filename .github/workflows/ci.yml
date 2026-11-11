@@ -18,3 +18,20 @@ jobs:
       - run: npm run typecheck
       - run: npx tsc --noEmit -p tests
       - run: npm test
+
+  # Vérifie en quelques secondes que le secret de signature Android est lisible.
+  signing-key:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check ANDROID_KEYSTORE_BASE64
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then echo "::warning::SIGNING_KEY_MISSING"; exit 0; fi
+          echo "Longueur du secret : ${#KEYSTORE_B64} caractères"
+          echo "$KEYSTORE_B64" | tr -d ' \r\n' | base64 -d > /tmp/k.keystore || true
+          if keytool -list -keystore /tmp/k.keystore -storepass android -alias androiddebugkey >/dev/null 2>&1; then
+            echo "SIGNING_KEY_OK"
+          else
+            echo "::warning::SIGNING_KEY_INVALID"
+          fi

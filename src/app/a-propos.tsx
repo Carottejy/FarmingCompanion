@@ -85,6 +85,9 @@ export default function AProposScreen() {
             {Platform.OS === 'android' && (
               <Text style={styles.muted}>Ouvrez le fichier téléchargé pour installer par-dessus la version actuelle (vos planches sont conservées).</Text>
             )}
+            {Platform.OS === 'ios' && (
+              <Text style={styles.muted}>Sur iPhone, la mise à jour s'installe depuis TestFlight ou l'App Store (ou se recharge automatiquement dans Expo Go).</Text>
+            )}
           </>
         )}
         {status.kind === 'error' && <Text style={[styles.text, { color: COLORS.deconseille }]}>⚠️ {status.message}</Text>}

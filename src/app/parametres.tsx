@@ -1,10 +1,13 @@
 import * as Location from 'expo-location';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { Button, Card, Chip, SectionTitle } from '../components/ui';
 import { COLORS } from '../config';
 import { detectZone, doyToLabel, ZONES } from '../lib/climate';
 import { useAppState } from '../state/AppState';
+
+// iOS : le pavé décimal n'a pas de signe moins (longitudes ouest) → clavier chiffres + ponctuation.
+const COORD_KEYBOARD = Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'numeric';
 
 const num = (s: string) => {
   const v = parseFloat(s.replace(',', '.'));
@@ -86,8 +89,8 @@ export default function ParametresScreen() {
 
         <Text style={[styles.label, { marginTop: 12 }]}>Ou saisie manuelle</Text>
         <View style={styles.row}>
-          <TextInput style={styles.input} placeholder="Latitude" keyboardType="numbers-and-punctuation" value={lat} onChangeText={setLat} />
-          <TextInput style={styles.input} placeholder="Longitude" keyboardType="numbers-and-punctuation" value={lon} onChangeText={setLon} />
+          <TextInput style={styles.input} placeholder="Latitude" keyboardType={COORD_KEYBOARD} value={lat} onChangeText={setLat} />
+          <TextInput style={styles.input} placeholder="Longitude" keyboardType={COORD_KEYBOARD} value={lon} onChangeText={setLon} />
           <TextInput style={[styles.input, { flex: 0.7 }]} placeholder="Alt. (m)" keyboardType="numeric" value={alt} onChangeText={setAlt} />
         </View>
         <Button kind="secondary" title="Enregistrer les coordonnées" onPress={saveManual} />
