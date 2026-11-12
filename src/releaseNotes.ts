@@ -11,6 +11,16 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.3.0',
+    date: '2026-11-12',
+    notes: [
+      'Planches : culture en cours avec date de semis / plantation et date de récolte prévisionnelle (estimée selon la culture, ajustable).',
+      'Barre de progression et nombre de jours avant la récolte.',
+      '« Récoltée » fait passer la culture dans l\'historique de la planche.',
+      'Conseils : la culture en cours sert de précédent, et le bouton « Que planter après … ? » ouvre les conseils à la date de récolte prévue.',
+    ],
+  },
+  {
     version: '1.2.0',
     date: '2026-11-11',
     notes: [

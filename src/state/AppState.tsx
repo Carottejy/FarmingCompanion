@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { buildClimateProfile, DEFAULT_LOCATION } from '../lib/climate';
-import type { ClimateProfile, ClimateZone, HistoryEntry, Location, Planche } from '../lib/types';
+import type { ClimateProfile, ClimateZone, CurrentCrop, HistoryEntry, Location, Planche } from '../lib/types';
 
 export interface Settings {
   location: Location | null;
@@ -32,6 +32,10 @@ interface AppStateValue {
   deletePlanche: (id: string) => void;
   addHistory: (plancheId: string, entry: HistoryEntry) => void;
   removeHistory: (plancheId: string, index: number) => void;
+  /** Définit (ou retire avec null) la culture en cours. */
+  setCurrent: (plancheId: string, current: CurrentCrop | null) => void;
+  /** Termine la culture en cours : elle passe dans l'historique de la planche. */
+  finishCurrent: (plancheId: string) => void;
 }
 
 const Ctx = createContext<AppStateValue | null>(null);
@@ -104,6 +108,29 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const setCurrent = useCallback(
+    (plancheId: string, current: CurrentCrop | null) =>
+      setPlanches((l) => l.map((p) => (p.id === plancheId ? { ...p, current } : p))),
+    [],
+  );
+  const finishCurrent = useCallback(
+    (plancheId: string) =>
+      setPlanches((l) =>
+        l.map((p) =>
+          p.id === plancheId && p.current
+            ? {
+                ...p,
+                current: null,
+                history: [...p.history, { cropId: p.current.cropId, date: p.current.sownDate }].sort((a, b) =>
+                  b.date.localeCompare(a.date),
+                ),
+              }
+            : p,
+        ),
+      ),
+    [],
+  );
+
   const value: AppStateValue = {
     ready,
     settings,
@@ -115,6 +142,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     deletePlanche,
     addHistory,
     removeHistory,
+    setCurrent,
+    finishCurrent,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

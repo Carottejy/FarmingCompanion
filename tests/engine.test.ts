@@ -97,3 +97,16 @@ test('tri décroissant', () => {
   const r = recommend({ date: new Date(2026, 3, 15), climate: paris, history: [{ cropId: 'chou-pomme', date: '2025-06-01' }] });
   for (let i = 1; i < r.length; i++) assert.ok(r[i - 1].score >= r[i].score);
 });
+
+import { addDays, cropProgress, daysBetween, estimateHarvest } from '../src/lib/dates';
+
+test('dates : récolte prévisionnelle et progression', () => {
+  assert.equal(addDays('2026-12-30', 3), '2027-01-02');
+  assert.equal(addDays('2026-03-28', 2), '2026-03-30'); // passage à l'heure d'été
+  assert.equal(daysBetween('2026-05-15', '2026-08-13'), 90);
+  assert.equal(estimateHarvest('tomate', '2026-05-15'), '2026-08-13'); // cycle 90 j
+  const p = cropProgress('2026-05-15', '2026-08-13', '2026-06-29');
+  assert.equal(p.daysLeft, 45);
+  assert.ok(Math.abs(p.ratio - 0.5) < 0.01);
+  assert.equal(cropProgress('2026-05-15', '2026-08-13', '2026-08-20').label, 'Récolte prévue dépassée de 7 j');
+});

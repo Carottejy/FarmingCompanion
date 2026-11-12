@@ -96,10 +96,20 @@ export interface HistoryEntry {
   date: string;
 }
 
+/** Culture actuellement en place sur une planche. */
+export interface CurrentCrop {
+  cropId: string;
+  /** Date de semis ou de plantation sur la planche (YYYY-MM-DD). */
+  sownDate: string;
+  /** Date de récolte prévisionnelle (YYYY-MM-DD), estimée puis ajustable. */
+  harvestDate: string;
+}
+
 export interface Planche {
   id: string;
   name: string;
   history: HistoryEntry[];
+  current?: CurrentCrop | null;
   notes?: string;
 }
 

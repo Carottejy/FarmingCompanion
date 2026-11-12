@@ -10,27 +10,33 @@ interface Item {
   sub: string;
 }
 
-const ITEMS: Item[] = [
-  ...CROPS.map((c) => ({ id: c.id, name: c.name, sub: c.family })),
+const byName = (a: Item, b: Item) => a.name.localeCompare(b.name, 'fr');
+const CROP_ITEMS: Item[] = CROPS.map((c) => ({ id: c.id, name: c.name, sub: c.family })).sort(byName);
+const ALL_ITEMS: Item[] = [
+  ...CROP_ITEMS,
   ...SPECIAL_PRECEDENTS.map((p) => ({ id: p.id, name: p.name, sub: 'Autre précédent' })),
-].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+].sort(byName);
 
 export function CropPicker({
   visible,
   onClose,
   onPick,
   title = 'Choisir une culture',
+  cropsOnly = false,
 }: {
   visible: boolean;
   onClose: () => void;
   onPick: (id: string) => void;
   title?: string;
+  /** N'afficher que les vraies cultures (pas « sol nu », « compost »…). */
+  cropsOnly?: boolean;
 }) {
   const [q, setQ] = useState('');
+  const ITEMS = cropsOnly ? CROP_ITEMS : ALL_ITEMS;
   const data = useMemo(() => {
     const n = q.trim().toLowerCase();
     return n ? ITEMS.filter((i) => i.name.toLowerCase().includes(n) || i.sub.toLowerCase().includes(n)) : ITEMS;
-  }, [q]);
+  }, [q, ITEMS]);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>

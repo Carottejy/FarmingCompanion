@@ -2,14 +2,14 @@
   "expo": {
     "name": "FarmingCompanion",
     "slug": "FarmingCompanion",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.carottejy.farmingcompanion",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "La position du jardin sert à adapter le calendrier de semis à votre climat.",
         "ITSAppUsesNonExemptEncryption": false
@@ -24,7 +24,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.carottejy.farmingcompanion",
-      "versionCode": 5,
+      "versionCode": 6,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"

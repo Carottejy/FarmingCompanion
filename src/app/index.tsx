@@ -4,7 +4,8 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-nat
 import { CropPicker } from '../components/CropPicker';
 import { Card, Chip, SectionTitle } from '../components/ui';
 import { COLORS } from '../config';
-import { precedentInfo } from '../lib/crops';
+import { cropById, precedentInfo } from '../lib/crops';
+import { formatDate, fromIso } from '../lib/dates';
 import { doyToLabel } from '../lib/climate';
 import { ACTION_LABEL, recommend } from '../lib/engine';
 import type { HistoryEntry, Recommendation, Verdict } from '../lib/types';
@@ -38,19 +39,28 @@ export default function ConseilsScreen() {
   const [adhocPrev, setAdhocPrev] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [halfMonth, setHalfMonth] = useState<number | null>(null); // null = aujourd'hui
+  const [periodYear, setPeriodYear] = useState(new Date().getFullYear());
   const [showBad, setShowBad] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [autoSelected, setAutoSelected] = useState(false);
 
   // Bouton « Conseils après … » de l'onglet Planches : présélectionne la planche (et donc sa dernière culture).
-  const params = useLocalSearchParams<{ planche?: string; t?: string }>();
+  // Avec une culture en cours, « date » = récolte prévue : les conseils portent sur l'après-récolte.
+  const params = useLocalSearchParams<{ planche?: string; t?: string; date?: string }>();
   useEffect(() => {
     if (params.planche && planches.some((p) => p.id === params.planche)) {
       setPlancheId(params.planche);
       setAutoSelected(true);
       setExpanded(null);
+      if (params.date) {
+        const d = fromIso(params.date);
+        setHalfMonth(dateToHalfMonth(d));
+        setPeriodYear(d.getFullYear());
+      } else {
+        setHalfMonth(null);
+      }
     }
-  }, [params.planche, params.t, planches.length]);
+  }, [params.planche, params.t, params.date, planches.length]);
 
   // Les planches sont chargées en asynchrone : sélectionner la première dès qu'elle existe.
   useEffect(() => {
@@ -62,11 +72,15 @@ export default function ConseilsScreen() {
   }, [planches, autoSelected, plancheId]);
 
   const today = new Date();
-  const date = halfMonth === null ? today : halfMonthToDate(halfMonth, today.getFullYear());
+  const date = halfMonth === null ? today : halfMonthToDate(halfMonth, periodYear);
   const planche = planches.find((p) => p.id === plancheId) ?? null;
 
   const history: HistoryEntry[] = useMemo(() => {
-    if (planche) return planche.history;
+    // La culture en cours est le précédent de ce qui viendra après elle.
+    if (planche)
+      return planche.current
+        ? [{ cropId: planche.current.cropId, date: planche.current.sownDate }, ...planche.history]
+        : planche.history;
     if (adhocPrev) {
       const d = new Date(date);
       d.setMonth(d.getMonth() - 2);
@@ -85,7 +99,10 @@ export default function ConseilsScreen() {
 
   const shiftPeriod = (delta: number) => {
     const cur = halfMonth ?? dateToHalfMonth(today);
-    setHalfMonth(((cur - 1 + delta + 24) % 24) + 1);
+    const year = halfMonth === null ? today.getFullYear() : periodYear;
+    const raw = cur - 1 + delta;
+    setPeriodYear(year + Math.floor(raw / 24));
+    setHalfMonth(((raw % 24) + 24) % 24 + 1);
   };
 
   return (
@@ -109,10 +126,10 @@ export default function ConseilsScreen() {
           <Text style={styles.period}>
             {halfMonth === null
               ? `Aujourd'hui (${today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })})`
-              : halfMonthLabel(halfMonth)}
+              : `${halfMonthLabel(halfMonth)}${periodYear !== today.getFullYear() ? ` ${periodYear}` : ''}`}
           </Text>
           {halfMonth !== null && (
-            <Pressable onPress={() => setHalfMonth(null)}>
+            <Pressable onPress={() => { setHalfMonth(null); setPeriodYear(today.getFullYear()); }}>
               <Text style={styles.link}>Revenir à aujourd'hui</Text>
             </Pressable>
           )}
@@ -135,7 +152,27 @@ export default function ConseilsScreen() {
           <Text style={styles.prevName}>{adhocPrev ? precedentInfo(adhocPrev)?.name : 'Choisir… (facultatif)'}</Text>
         </Pressable>
       )}
-      {planche && (
+      {planche && planche.current && (
+        <View style={styles.currentBox}>
+          <Text style={styles.currentText}>
+            🌿 En cours : {cropById(planche.current.cropId)?.name ?? planche.current.cropId} · récolte prévue le{' '}
+            {formatDate(planche.current.harvestDate)}
+          </Text>
+          <Text style={styles.muted}>Les conseils ci-dessous indiquent quoi mettre après cette culture.</Text>
+          {(halfMonth === null || planche.current.harvestDate.slice(0, 7) !== `${periodYear}-${String(Math.ceil(halfMonth / 2)).padStart(2, '0')}`) && (
+            <Pressable
+              onPress={() => {
+                const d = fromIso(planche.current!.harvestDate);
+                setHalfMonth(dateToHalfMonth(d));
+                setPeriodYear(d.getFullYear());
+              }}
+            >
+              <Text style={styles.link}>Voir les conseils à la date de récolte</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
+      {planche && !planche.current && (
         <Text style={[styles.muted, { marginBottom: 8 }]}>
           Précédent : {previous ? previous.name : 'aucun historique — ajoutez-en dans l\'onglet Planches'}
         </Text>
@@ -224,6 +261,8 @@ const styles = StyleSheet.create({
   period: { fontSize: 17, fontWeight: '600', color: COLORS.text },
   link: { color: COLORS.green, marginTop: 4 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  currentBox: { backgroundColor: COLORS.greenLight, borderRadius: 10, padding: 10, marginBottom: 8 },
+  currentText: { fontSize: 15, color: COLORS.text, fontWeight: '600', marginBottom: 2 },
   prevBox: { backgroundColor: COLORS.card, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: COLORS.border, marginBottom: 8 },
   prevName: { fontSize: 16, color: COLORS.text, marginTop: 2 },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 8 },

@@ -2,9 +2,11 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CropPicker } from '../components/CropPicker';
+import { CurrentCropSection } from '../components/CurrentCropSection';
 import { Button, Card, SectionTitle } from '../components/ui';
 import { COLORS } from '../config';
-import { precedentInfo } from '../lib/crops';
+import { cropById, precedentInfo } from '../lib/crops';
+import { formatDate } from '../lib/dates';
 import { useAppState } from '../state/AppState';
 
 const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
@@ -96,11 +98,33 @@ export default function PlanchesScreen() {
           </View>
           <Text style={styles.hint}>Appui long sur le nom pour le modifier.</Text>
 
-          {p.history.length === 0 && <Text style={styles.muted}>Aucun historique.</Text>}
+          <CurrentCropSection planche={p} />
+
+          <Button
+            small
+            title={
+              p.current
+                ? `🌱 Que planter après ${cropById(p.current.cropId)?.name ?? 'la culture en cours'} ? (récolte ~${formatDate(p.current.harvestDate, false)})`
+                : p.history.length
+                  ? `🌱 Conseils après ${precedentInfo(p.history[0].cropId)?.name ?? 'la dernière culture'}`
+                  : '🌱 Conseils pour cette planche'
+            }
+            onPress={() =>
+              router.navigate({
+                pathname: '/',
+                // t : force la prise en compte même si la même planche est demandée deux fois de suite.
+                // date : avec une culture en cours, les conseils portent sur la date de récolte prévue.
+                params: { planche: p.id, t: String(Date.now()), ...(p.current ? { date: p.current.harvestDate } : {}) },
+              })
+            }
+          />
+
+          <Text style={styles.histTitle}>Historique</Text>
+          {p.history.length === 0 && <Text style={styles.muted}>Aucune culture passée enregistrée.</Text>}
           {p.history.map((h, i) => (
             <View key={`${h.cropId}-${h.date}-${i}`} style={styles.histRow}>
-              <Text style={[styles.histText, i === 0 && { fontWeight: '700' }]}>
-                {i === 0 ? '▶ ' : ''}
+              <Text style={[styles.histText, i === 0 && !p.current && { fontWeight: '700' }]}>
+                {i === 0 && !p.current ? '▶ ' : ''}
                 {precedentInfo(h.cropId)?.name ?? h.cropId}
               </Text>
               <Text style={styles.muted}>{formatMonth(h.date)}</Text>
@@ -109,15 +133,6 @@ export default function PlanchesScreen() {
               </Pressable>
             </View>
           ))}
-
-          <Button
-            small
-            title={p.history.length ? `🌱 Conseils après ${precedentInfo(p.history[0].cropId)?.name ?? 'la dernière culture'}` : '🌱 Conseils pour cette planche'}
-            onPress={() =>
-              // t : force la prise en compte même si la même planche est demandée deux fois de suite
-              router.navigate({ pathname: '/', params: { planche: p.id, t: String(Date.now()) } })
-            }
-          />
 
           {pending?.plancheId === p.id ? (
             <View style={styles.pending}>
@@ -181,6 +196,7 @@ const styles = StyleSheet.create({
   },
   muted: { color: COLORS.muted, fontSize: 14 },
   hint: { color: COLORS.muted, fontSize: 12, marginBottom: 8 },
+  histTitle: { fontSize: 12, fontWeight: '700', color: COLORS.muted, textTransform: 'uppercase', marginTop: 10, marginBottom: 2 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   name: { fontSize: 18, fontWeight: '700', color: COLORS.text },
   histRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: COLORS.border },

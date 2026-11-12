@@ -14,7 +14,7 @@ Construite avec **Expo / React Native** (un seul code pour Android et iOS). Les 
 | Onglet | Contenu |
 |---|---|
 | 🌱 **Conseils** | Classement des cultures possibles avec un score sur 100, un verdict (Excellent / Bon / Possible / Déconseillé) et le détail des raisons (+ / −), astuces, bons et mauvais voisins. |
-| 🧺 **Planches** | Création des planches et historique de ce qui y a poussé (mois / année). |
+| 🧺 **Planches** | Création des planches, **culture en cours** (date de semis / plantation, récolte prévisionnelle, progression) et historique de ce qui y a poussé. Bouton « Que planter après … ? » qui ouvre les conseils à la date de récolte. |
 | ⚙️ **Paramètres** | Position GPS (automatique ou saisie manuelle, altitude incluse), zone climatique détectée ou forcée, ajustement du calendrier (microclimat), semis sous abri oui/non. |
 | ℹ️ **À propos** | Version installée, recherche de mise à jour (GitHub Releases), téléchargement de l'APK, notes de version. |
 
