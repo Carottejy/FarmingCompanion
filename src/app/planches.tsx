@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CropPicker } from '../components/CropPicker';
 import { CurrentCropSection } from '../components/CurrentCropSection';
+import { ImportExportCard } from '../components/ImportExportCard';
 import { Button, Card, SectionTitle } from '../components/ui';
 import { COLORS } from '../config';
-import { cropById, precedentInfo } from '../lib/crops';
+import { cropById, entryFamilyLabel, entryName, plancheDisplayName } from '../lib/crops';
 import { formatDate } from '../lib/dates';
 import { useAppState } from '../state/AppState';
 
@@ -28,10 +29,10 @@ export default function PlanchesScreen() {
   const confirmDelete = (id: string, name: string) => {
     // Alert.alert n'affiche rien sur le web (web app iPhone) : on utilise la boîte native du navigateur.
     if (Platform.OS === 'web') {
-      if (window.confirm(`Supprimer « ${name} » et son historique ?`)) deletePlanche(id);
+      if (window.confirm(`Supprimer « ${plancheDisplayName(name)} » et son historique ?`)) deletePlanche(id);
       return;
     }
-    Alert.alert('Supprimer la planche', `Supprimer « ${name} » et son historique ?`, [
+    Alert.alert('Supprimer la planche', `Supprimer « ${plancheDisplayName(name)} » et son historique ?`, [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: () => deletePlanche(id) },
     ]);
@@ -66,6 +67,9 @@ export default function PlanchesScreen() {
         />
       </Card>
 
+      <SectionTitle>Import / export Excel</SectionTitle>
+      <ImportExportCard />
+
       <SectionTitle>Mes planches ({planches.length})</SectionTitle>
       {planches.length === 0 && (
         <Card>
@@ -89,7 +93,7 @@ export default function PlanchesScreen() {
               />
             ) : (
               <Pressable onLongPress={() => setEditing(p.id)} style={{ flex: 1 }}>
-                <Text style={styles.name}>{p.name}</Text>
+                <Text style={styles.name}>{plancheDisplayName(p.name)}</Text>
               </Pressable>
             )}
             <Pressable onPress={() => confirmDelete(p.id, p.name)} hitSlop={10}>
@@ -106,7 +110,7 @@ export default function PlanchesScreen() {
               p.current
                 ? `🌱 Que planter après ${cropById(p.current.cropId)?.name ?? 'la culture en cours'} ? (récolte ~${formatDate(p.current.harvestDate, false)})`
                 : p.history.length
-                  ? `🌱 Conseils après ${precedentInfo(p.history[0].cropId)?.name ?? 'la dernière culture'}`
+                  ? `🌱 Conseils après ${entryName(p.history[0])}`
                   : '🌱 Conseils pour cette planche'
             }
             onPress={() =>
@@ -123,10 +127,13 @@ export default function PlanchesScreen() {
           {p.history.length === 0 && <Text style={styles.muted}>Aucune culture passée enregistrée.</Text>}
           {p.history.map((h, i) => (
             <View key={`${h.cropId}-${h.date}-${i}`} style={styles.histRow}>
-              <Text style={[styles.histText, i === 0 && !p.current && { fontWeight: '700' }]}>
-                {i === 0 && !p.current ? '▶ ' : ''}
-                {precedentInfo(h.cropId)?.name ?? h.cropId}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.histText, i === 0 && !p.current && { fontWeight: '700' }]}>
+                  {i === 0 && !p.current ? '▶ ' : ''}
+                  {entryName(h)}
+                </Text>
+                {entryFamilyLabel(h) && <Text style={styles.family}>{entryFamilyLabel(h)}</Text>}
+              </View>
               <Text style={styles.muted}>{formatMonth(h.date)}</Text>
               <Pressable onPress={() => removeHistory(p.id, i)} hitSlop={10} style={{ marginLeft: 10 }}>
                 <Text style={{ color: COLORS.muted }}>✕</Text>
@@ -136,7 +143,9 @@ export default function PlanchesScreen() {
 
           {pending?.plancheId === p.id ? (
             <View style={styles.pending}>
-              <Text style={styles.histText}>{precedentInfo(pending.cropId)?.name}</Text>
+              <Text style={styles.histText}>
+                {entryName(pending)} <Text style={styles.family}>· {entryFamilyLabel(pending)}</Text>
+              </Text>
               <Text style={styles.muted}>Mise en place :</Text>
               <View style={styles.stepper}>
                 <Button small kind="secondary" title="◀" onPress={() => stepMonth(-1)} />
@@ -201,6 +210,7 @@ const styles = StyleSheet.create({
   name: { fontSize: 18, fontWeight: '700', color: COLORS.text },
   histRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: COLORS.border },
   histText: { flex: 1, fontSize: 15, color: COLORS.text },
+  family: { fontSize: 12, color: COLORS.earth },
   pending: { marginTop: 10, padding: 10, backgroundColor: COLORS.greenLight, borderRadius: 10 },
   stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 6 },
   stepText: { fontSize: 16, fontWeight: '600', color: COLORS.text },

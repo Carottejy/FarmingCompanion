@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import { COLORS } from '../config';
-import { cropById } from '../lib/crops';
+import { cropById, familyLabel } from '../lib/crops';
 import { cropProgress, daysBetween, estimateHarvest, formatDate, todayIso } from '../lib/dates';
 import type { CurrentCrop, Planche } from '../lib/types';
 import { useAppState } from '../state/AppState';
@@ -44,7 +44,10 @@ export function CurrentCropSection({ planche }: { planche: Planche }) {
     return (
       <View style={styles.box}>
         <Text style={styles.title}>{current ? 'Modifier la culture en cours' : 'Nouvelle culture en cours'}</Text>
-        <Text style={styles.cropName}>{crop?.name ?? draft.cropId}</Text>
+        <Text style={styles.cropName}>
+          {crop?.name ?? draft.cropId}
+          {crop && <Text style={styles.family}>  · {familyLabel(crop.family)}</Text>}
+        </Text>
         <DateStepper
           label="Date de semis / plantation sur la planche"
           value={draft.sownDate}
@@ -113,7 +116,10 @@ export function CurrentCropSection({ planche }: { planche: Planche }) {
   return (
     <View style={styles.box}>
       <Text style={styles.title}>Culture en cours</Text>
-      <Text style={styles.cropName}>🌿 {crop?.name ?? current.cropId}</Text>
+      <Text style={styles.cropName}>
+        🌿 {crop?.name ?? current.cropId}
+        {crop && <Text style={styles.family}>  · {familyLabel(crop.family)}</Text>}
+      </Text>
       <Text style={styles.line}>Semis / plantation : {formatDate(current.sownDate)}</Text>
       <Text style={styles.line}>Récolte prévue : {formatDate(current.harvestDate)}</Text>
       <View style={styles.barBg}>
@@ -152,6 +158,7 @@ const styles = StyleSheet.create({
   box: { marginTop: 8, marginBottom: 6, padding: 10, borderRadius: 10, backgroundColor: COLORS.greenLight },
   title: { fontSize: 12, fontWeight: '700', color: COLORS.muted, textTransform: 'uppercase', marginBottom: 2 },
   cropName: { fontSize: 17, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
+  family: { fontSize: 14, fontWeight: '400', color: COLORS.earth },
   line: { fontSize: 14, color: COLORS.text, marginBottom: 2 },
   small: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
   error: { fontSize: 13, color: COLORS.deconseille, marginTop: 4 },

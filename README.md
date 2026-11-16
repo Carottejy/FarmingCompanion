@@ -14,9 +14,27 @@ Construite avec **Expo / React Native** (un seul code pour Android et iOS). Les 
 | Onglet | Contenu |
 |---|---|
 | 🌱 **Conseils** | Classement des cultures possibles avec un score sur 100, un verdict (Excellent / Bon / Possible / Déconseillé) et le détail des raisons (+ / −), astuces, bons et mauvais voisins. |
-| 🧺 **Planches** | Création des planches, **culture en cours** (date de semis / plantation, récolte prévisionnelle, progression) et historique de ce qui y a poussé. Bouton « Que planter après … ? » qui ouvre les conseils à la date de récolte. |
+| 🧺 **Planches** | Création des planches, **culture en cours** (date de semis / plantation, récolte prévisionnelle, progression) et historique de ce qui y a poussé. Bouton « Que planter après … ? » qui ouvre les conseils à la date de récolte. Famille botanique affichée pour chaque culture. **Import / export Excel** (voir ci-dessous). |
 | ⚙️ **Paramètres** | Position GPS (automatique ou saisie manuelle, altitude incluse), zone climatique détectée ou forcée, ajustement du calendrier (microclimat), semis sous abri oui/non. |
 | ℹ️ **À propos** | Version installée, recherche de mise à jour (GitHub Releases), téléchargement de l'APK, notes de version. |
+
+## Import / export Excel
+
+Format « Synthèse des planches » : un onglet, quatre colonnes.
+
+| Planche | Légume | Date | Famille |
+|---|---|---|---|
+| 1 | Pomme de terre | 04/2024 | Solanacées |
+| 1 | Petits pois | 11/2025 | Fabacées |
+| Terrain Sud-Ouest | Courgettes | 06/2026 | Cucurbitacées |
+
+- **Importer** (.xlsx ou .csv) : chaque planche du fichier est créée si elle n'existe pas ; sinon son historique est
+  **remplacé** par celui du fichier (« 1 » correspond aussi à une planche nommée « Planche 1 »). Les planches absentes
+  du fichier et les cultures en cours ne changent pas. Dates acceptées : `04/2024`, `15/04/2024`, `2024-04`, dates Excel.
+- Les légumes sont reconnus malgré les pluriels (« Poireaux », « Petits pois »…). Ceux qui ne sont pas dans la base
+  (gazon, thym…) sont gardés tels quels, avec la famille du fichier, qui compte pour les règles de rotation.
+- **Exporter** : même format (historique + culture en cours), partagé vers Fichiers, Drive, mail…
+  Un fichier importé puis exporté ressort à l'identique.
 
 ## Les règles agronomiques utilisées
 

@@ -36,11 +36,13 @@ interface AppStateValue {
   setCurrent: (plancheId: string, current: CurrentCrop | null) => void;
   /** Termine la culture en cours : elle passe dans l'historique de la planche. */
   finishCurrent: (plancheId: string) => void;
+  /** Remplace toutes les planches (import de fichier). */
+  replacePlanches: (planches: Planche[]) => void;
 }
 
 const Ctx = createContext<AppStateValue | null>(null);
 
-const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+export const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -131,6 +133,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const replacePlanches = useCallback((list: Planche[]) => setPlanches(list), []);
+
   const value: AppStateValue = {
     ready,
     settings,
@@ -144,6 +148,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     removeHistory,
     setCurrent,
     finishCurrent,
+    replacePlanches,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

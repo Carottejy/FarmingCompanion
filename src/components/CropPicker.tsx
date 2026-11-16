@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config';
-import { CROPS, SPECIAL_PRECEDENTS } from '../lib/crops';
+import { CROPS, familyLabel, SPECIAL_PRECEDENTS } from '../lib/crops';
 
 interface Item {
   id: string;
@@ -11,7 +11,7 @@ interface Item {
 }
 
 const byName = (a: Item, b: Item) => a.name.localeCompare(b.name, 'fr');
-const CROP_ITEMS: Item[] = CROPS.map((c) => ({ id: c.id, name: c.name, sub: c.family })).sort(byName);
+const CROP_ITEMS: Item[] = CROPS.map((c) => ({ id: c.id, name: c.name, sub: familyLabel(c.family) })).sort(byName);
 const ALL_ITEMS: Item[] = [
   ...CROP_ITEMS,
   ...SPECIAL_PRECEDENTS.map((p) => ({ id: p.id, name: p.name, sub: 'Autre précédent' })),

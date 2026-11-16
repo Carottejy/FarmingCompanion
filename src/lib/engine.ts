@@ -1,4 +1,4 @@
-import { CROPS, precedentInfo } from './crops';
+import { CROPS, entryInfo, familyLabel } from './crops';
 import { dayOfYear, doyToLabel } from './climate';
 import type {
   ActionKind,
@@ -103,7 +103,7 @@ export function recommend(input: RecommendInput): Recommendation[] {
   const pos = halfMonthPosition(doy);
   const history = [...input.history].sort((a, b) => b.date.localeCompare(a.date));
   const previous = history[0];
-  const prevInfo = previous ? precedentInfo(previous.cropId) : undefined;
+  const prevInfo = previous ? entryInfo(previous) : undefined;
 
   const results: Recommendation[] = [];
 
@@ -144,17 +144,17 @@ export function recommend(input: RecommendInput): Recommendation[] {
     // 2) Rotation — familles
     if (previous && prevInfo) {
       if (prevInfo.family && prevInfo.family === crop.family) {
-        add(-45, `Même famille (${crop.family}) que la culture précédente : maladies et ravageurs du sol s'accumulent.`);
+        add(-45, `Même famille (${familyLabel(crop.family)}) que la culture précédente : maladies et ravageurs du sol s'accumulent.`);
         if (previous.cropId === crop.id) add(-10, 'Même légume deux fois de suite.');
       }
     }
     for (const h of history.slice(previous ? 1 : 0)) {
-      const info = precedentInfo(h.cropId);
+      const info = entryInfo(h);
       if (!info?.family || info.family !== crop.family) continue;
       const years = (date.getTime() - new Date(h.date).getTime()) / (365.25 * 86400000);
       if (years < crop.returnYears) {
         const p = Math.round(30 * (1 - years / crop.returnYears)) + 5;
-        add(-p, `${info.name} (${crop.family}) cultivé il y a ${years < 1 ? 'moins d\'un an' : `${Math.floor(years)} an(s)`} : attendre ${crop.returnYears} ans pour cette famille.`);
+        add(-p, `${info.name} (${familyLabel(crop.family)}) cultivé il y a ${years < 1 ? 'moins d\'un an' : `${Math.floor(years)} an(s)`} : attendre ${crop.returnYears} ans pour cette famille.`);
         break; // un seul malus d'historique (le plus récent)
       }
     }

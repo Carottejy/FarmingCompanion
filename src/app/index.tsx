@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-nat
 import { CropPicker } from '../components/CropPicker';
 import { Card, Chip, SectionTitle } from '../components/ui';
 import { COLORS } from '../config';
-import { cropById, precedentInfo } from '../lib/crops';
+import { cropById, entryFamilyLabel, entryInfo, familyLabel, precedentInfo } from '../lib/crops';
 import { formatDate, fromIso } from '../lib/dates';
 import { doyToLabel } from '../lib/climate';
 import { ACTION_LABEL, recommend } from '../lib/engine';
@@ -95,7 +95,8 @@ export default function ConseilsScreen() {
   );
   const visible = showBad ? results : results.filter((r) => r.verdict !== 'Déconseillé');
   const hiddenCount = results.length - visible.length;
-  const previous = history[0] ? precedentInfo(history[0].cropId) : undefined;
+  const previous = history[0] ? entryInfo(history[0]) : undefined;
+  const previousFamily = history[0] ? entryFamilyLabel(history[0]) : undefined;
 
   const shiftPeriod = (delta: number) => {
     const cur = halfMonth ?? dateToHalfMonth(today);
@@ -155,7 +156,7 @@ export default function ConseilsScreen() {
       {planche && planche.current && (
         <View style={styles.currentBox}>
           <Text style={styles.currentText}>
-            🌿 En cours : {cropById(planche.current.cropId)?.name ?? planche.current.cropId} · récolte prévue le{' '}
+            🌿 En cours : {cropById(planche.current.cropId)?.name ?? planche.current.cropId} ({familyLabel(cropById(planche.current.cropId)?.family ?? '')}) · récolte prévue le{' '}
             {formatDate(planche.current.harvestDate)}
           </Text>
           <Text style={styles.muted}>Les conseils ci-dessous indiquent quoi mettre après cette culture.</Text>
@@ -174,7 +175,7 @@ export default function ConseilsScreen() {
       )}
       {planche && !planche.current && (
         <Text style={[styles.muted, { marginBottom: 8 }]}>
-          Précédent : {previous ? previous.name : 'aucun historique — ajoutez-en dans l\'onglet Planches'}
+          Précédent : {previous ? `${previous.name}${previousFamily ? ` (${previousFamily})` : ''}` : 'aucun historique — ajoutez-en dans l\'onglet Planches'}
         </Text>
       )}
 
@@ -226,7 +227,7 @@ function ResultCard({ r, rank, open, onToggle }: { r: Recommendation; rank: numb
               {rank}. {r.crop.name}
             </Text>
             <Text style={styles.muted}>
-              {r.crop.family} · {ACTION_LABEL[r.action]}
+              {familyLabel(r.crop.family)} · {ACTION_LABEL[r.action]}
             </Text>
           </View>
           <Text style={[styles.verdict, { color }]}>{r.verdict}</Text>

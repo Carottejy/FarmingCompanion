@@ -11,6 +11,16 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.4.0',
+    date: '2026-11-16',
+    notes: [
+      'Planches : la famille botanique est affichée pour chaque culture (ex. Petits pois → Fabacées, Ail → Amaryllidacées).',
+      'Import Excel (.xlsx ou .csv) au format « Synthèse des planches » (Planche, Légume, Date MM/AAAA, Famille) : crée les planches manquantes et remplace l\'historique des autres.',
+      'Export Excel au même format (historique + cultures en cours), partageable vers Fichiers, Drive, mail…',
+      'Les légumes hors base (gazon, thym, ciboulette…) sont gardés avec la famille du fichier et comptent pour la rotation.',
+    ],
+  },
+  {
     version: '1.3.0',
     date: '2026-11-12',
     notes: [

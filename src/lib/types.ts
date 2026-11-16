@@ -90,10 +90,17 @@ export interface ClimateProfile {
 
 /** Entrée d'historique d'une planche. */
 export interface HistoryEntry {
-  /** Identifiant de culture (voir crops.ts) ou d'un précédent spécial (voir SPECIAL_PRECEDENTS). */
+  /**
+   * Identifiant de culture (voir crops.ts), d'un précédent spécial (voir SPECIAL_PRECEDENTS),
+   * ou « custom » pour un légume absent de la base (importé d'un fichier).
+   */
   cropId: string;
   /** Date de mise en place, ISO (YYYY-MM-DD). */
   date: string;
+  /** Nom tel qu'écrit dans le fichier importé (ex. « Petits pois »). */
+  label?: string;
+  /** Famille telle qu'écrite dans le fichier importé (ex. « Amaryllidacées »). */
+  family?: string;
 }
 
 /** Culture actuellement en place sur une planche. */

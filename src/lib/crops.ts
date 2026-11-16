@@ -321,11 +321,162 @@ export const SPECIAL_PRECEDENTS: SpecialPrecedent[] = [
 
 export const cropById = (id: string): Crop | undefined => CROPS.find((c) => c.id === id);
 
-export const precedentInfo = (
-  id: string,
-): { name: string; family?: Family; demand: Demand; crop?: Crop } | undefined => {
+// ───────────────────────── Familles ─────────────────────────
+
+/**
+ * Nom affiché / exporté de chaque famille. La classification botanique actuelle (APG) range
+ * l'ail, l'oignon et le poireau dans les Amaryllidacées, et la mâche dans les Caprifoliacées.
+ */
+export const FAMILY_LABEL: Record<Family, string> = {
+  Solanacées: 'Solanacées',
+  Cucurbitacées: 'Cucurbitacées',
+  Brassicacées: 'Brassicacées',
+  Alliacées: 'Amaryllidacées',
+  Apiacées: 'Apiacées',
+  Astéracées: 'Astéracées',
+  Amaranthacées: 'Amaranthacées',
+  Fabacées: 'Fabacées',
+  Valérianacées: 'Caprifoliacées (Valérianacées)',
+  Poacées: 'Poacées',
+  Convolvulacées: 'Convolvulacées',
+  Rosacées: 'Rosacées',
+  Hydrophyllacées: 'Hydrophyllacées',
+};
+
+export const familyLabel = (f: string): string => (f in FAMILY_LABEL ? FAMILY_LABEL[f as Family] : f);
+
+const norm = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[’']/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+/** Synonymes (anciennes classifications, noms courants) → famille du moteur. */
+const FAMILY_ALIASES: Record<string, Family> = {
+  amaryllidacees: 'Alliacées',
+  alliacees: 'Alliacées',
+  liliacees: 'Alliacées',
+  caprifoliacees: 'Valérianacées',
+  'caprifoliacees (valerianacees)': 'Valérianacées',
+  valerianacees: 'Valérianacées',
+  chenopodiacees: 'Amaranthacées',
+  amaranthacees: 'Amaranthacées',
+  legumineuses: 'Fabacées',
+  papilionacees: 'Fabacées',
+  cruciferes: 'Brassicacées',
+  ombelliferes: 'Apiacées',
+  composees: 'Astéracées',
+  graminees: 'Poacées',
+};
+for (const f of Object.keys(FAMILY_LABEL) as Family[]) FAMILY_ALIASES[norm(f)] = f;
+
+/** Famille du moteur pour un nom saisi ; nom d'origine si inconnue (Lamiacées, Divers…). */
+export function canonicalFamily(raw: string | undefined): string | undefined {
+  if (!raw || !raw.trim()) return undefined;
+  return FAMILY_ALIASES[norm(raw)] ?? raw.trim();
+}
+
+/** Exigence supposée d'un légume hors base, d'après sa famille. */
+function demandForFamily(f: string | undefined): Demand {
+  switch (f) {
+    case 'Fabacées':
+      return 'améliorant';
+    case 'Solanacées':
+    case 'Cucurbitacées':
+    case 'Brassicacées':
+      return 'exigeant';
+    case 'Alliacées':
+    case 'Poacées':
+      return 'faible';
+    default:
+      return 'moyen';
+  }
+}
+
+// ───────────────────────── Noms de légumes ─────────────────────────
+
+/** Noms courants (singulier, sans accents) → culture de la base. */
+const NAME_ALIASES: Record<string, string> = {
+  'pomme de terre': 'pomme-de-terre', 'pommes de terre': 'pomme-de-terre', patate: 'pomme-de-terre',
+  tomate: 'tomate', 'tomate cerise': 'tomate',
+  aubergine: 'aubergine', poivron: 'poivron', piment: 'poivron',
+  courgette: 'courgette', courge: 'courge', potiron: 'courge', potimarron: 'courge', butternut: 'courge',
+  patisson: 'courge', citrouille: 'courge', concombre: 'concombre', cornichon: 'concombre', melon: 'melon',
+  chou: 'chou-pomme', 'chou pomme': 'chou-pomme', 'chou cabus': 'chou-pomme', 'chou rouge': 'chou-pomme',
+  'chou de milan': 'chou-hiver', 'chou de bruxelles': 'chou-hiver', kale: 'chou-hiver',
+  'chou fleur': 'chou-fleur', brocoli: 'brocoli', 'chou rave': 'chou-rave',
+  radis: 'radis', 'radis noir': 'radis-noir', navet: 'navet', roquette: 'roquette',
+  ail: 'ail', oignon: 'oignon', echalote: 'echalote', poireau: 'poireau',
+  carotte: 'carotte', panais: 'panais', celeri: 'celeri', 'celeri rave': 'celeri', persil: 'persil', fenouil: 'fenouil',
+  salade: 'laitue', laitue: 'laitue', batavia: 'laitue', chicoree: 'chicoree', scarole: 'chicoree', frisee: 'chicoree',
+  artichaut: 'artichaut', betterave: 'betterave', blette: 'blette', bette: 'blette', poiree: 'blette', epinard: 'epinard',
+  haricot: 'haricot', 'haricot vert': 'haricot', pois: 'pois', 'petit pois': 'pois', 'pois mangetout': 'pois',
+  feve: 'feve', mache: 'mache', mais: 'mais', 'mais doux': 'mais', 'patate douce': 'patate-douce',
+  fraisier: 'fraisier', fraise: 'fraisier', phacelie: 'phacelie',
+};
+
+/** Singulier approximatif : « Petits pois » → « petit pois », « Choux » → « chou », « Poireaux » → « poireau ». */
+function singular(s: string): string {
+  return s
+    .split(' ')
+    .map((w) => {
+      if (w.length <= 3) return w;
+      if (/eaux$|aux$|oux$/.test(w)) return w.slice(0, -1); // poireaux, choux
+      if (/(is|us|as|ss)$/.test(w)) return w; // pois, radis, panais, maïs…
+      return w.replace(/s$/, '');
+    })
+    .join(' ');
+}
+
+/** Retrouve la culture de la base correspondant à un nom libre (ou undefined). */
+export function matchCrop(name: string): Crop | undefined {
+  const n = norm(name);
+  const candidates = [n, singular(n), n.replace(/-/g, ' '), singular(n.replace(/-/g, ' '))];
+  for (const c of candidates) {
+    const id = NAME_ALIASES[c];
+    if (id) return cropById(id);
+  }
+  return CROPS.find((c) => candidates.includes(norm(c.name)));
+}
+
+// ───────────────────────── Précédents ─────────────────────────
+
+export interface PrecedentInfo {
+  name: string;
+  /** Famille du moteur (canonique) ou nom libre si inconnue. */
+  family?: string;
+  demand: Demand;
+  crop?: Crop;
+}
+
+export const precedentInfo = (id: string): PrecedentInfo | undefined => {
   const crop = cropById(id);
   if (crop) return { name: crop.name, family: crop.family, demand: crop.demand, crop };
   const s = SPECIAL_PRECEDENTS.find((p) => p.id === id);
   return s ? { name: s.name, family: s.family, demand: s.demand } : undefined;
 };
+
+/** Infos d'une entrée d'historique, y compris les légumes importés absents de la base. */
+export function entryInfo(e: { cropId: string; label?: string; family?: string }): PrecedentInfo | undefined {
+  const base = precedentInfo(e.cropId);
+  const fam = canonicalFamily(e.family) ?? base?.family;
+  if (base) return { ...base, name: e.label ?? base.name, family: fam };
+  if (!e.label && !fam) return undefined;
+  return { name: e.label ?? 'Culture', family: fam, demand: demandForFamily(fam) };
+}
+
+/** Nom affiché d'une entrée d'historique. */
+export const entryName = (e: { cropId: string; label?: string; family?: string }) => entryInfo(e)?.name ?? e.cropId;
+
+/** Famille affichée d'une entrée d'historique (« Amaryllidacées » pour l'ail…). */
+export function entryFamilyLabel(e: { cropId: string; family?: string }): string | undefined {
+  if (e.family) return e.family;
+  const f = precedentInfo(e.cropId)?.family;
+  return f ? familyLabel(f) : undefined;
+}
+
+/** « 1 » → « Planche 1 » ; les noms libres (« Terrain Sud-Ouest ») restent tels quels. */
+export const plancheDisplayName = (name: string) => (/^[0-9]+$/.test(name.trim()) ? `Planche ${name.trim()}` : name);
