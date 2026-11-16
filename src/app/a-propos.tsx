@@ -2,7 +2,7 @@ import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, SectionTitle } from '../components/ui';
 import { COLORS, RELEASES_API, RELEASES_PAGE } from '../config';
 import { RELEASE_NOTES } from '../releaseNotes';
@@ -16,7 +16,10 @@ type Status =
   | { kind: 'error'; message: string };
 
 export default function AProposScreen() {
-  const version = (Platform.OS !== 'web' && Application.nativeApplicationVersion) || Constants.expoConfig?.version || '0.0.0';
+  // Web : la version vient de app.json, embarquée au build (Constants peut garder une valeur en cache).
+  const appJsonVersion: string | undefined = require('../../app.json').expo?.version;
+  const version =
+    (Platform.OS !== 'web' && Application.nativeApplicationVersion) || appJsonVersion || Constants.expoConfig?.version || '0.0.0';
   const build = Application.nativeBuildVersion;
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const [remote, setRemote] = useState<RemoteRelease[]>([]);
@@ -51,7 +54,11 @@ export default function AProposScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.hero}>
-        <Text style={{ fontSize: 48 }}>🥕</Text>
+        <Image
+          source={require('../../assets/about-logo.png')}
+          style={styles.logo}
+          accessibilityLabel="Logo FarmingCompanion"
+        />
         <Text style={styles.appName}>FarmingCompanion</Text>
         <Text style={styles.muted}>Le compagnon des planches du jardin partagé</Text>
       </View>
@@ -138,6 +145,16 @@ export default function AProposScreen() {
 const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 40 },
   hero: { alignItems: 'center', marginBottom: 16 },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 26,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+  },
   appName: { fontSize: 24, fontWeight: '800', color: COLORS.green },
   text: { fontSize: 15, color: COLORS.text, marginBottom: 6 },
   muted: { fontSize: 13, color: COLORS.muted },

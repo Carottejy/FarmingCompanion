@@ -11,6 +11,15 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.4.1',
+    date: '2026-11-16',
+    notes: [
+      'Nouvelle icône de l\'application (carotte au potager) sur Android, iPhone et la web app.',
+      'Nouvelle image dans l\'onglet À propos.',
+      'Web app : la version affichée dans À propos est maintenant toujours la bonne.',
+    ],
+  },
+  {
     version: '1.4.0',
     date: '2026-11-16',
     notes: [
