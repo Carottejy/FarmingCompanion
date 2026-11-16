@@ -5,7 +5,7 @@
 //  - 404.html (copie d'index.html) pour que GitHub Pages serve les routes de l'app
 // Usage : node scripts/make-pwa.mjs dist
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 const dist = process.argv[2] ?? 'dist';
@@ -14,6 +14,18 @@ const base = (process.env.WEB_BASE_URL ?? '').replace(/\/$/, '');
 
 const THEME = '#2E7D32';
 const BG = '#F7F5EF';
+
+// Noms d'icônes avec empreinte du contenu : sans cela, iOS et Android réutilisent l'ancienne icône
+// mise en cache quand on (ré)ajoute la web app à l'écran d'accueil après un changement d'icône.
+const shortHash = (buf) => createHash('sha256').update(buf).digest('hex').slice(0, 8);
+mkdirSync(join(dist, 'icons'), { recursive: true });
+const icon = {};
+for (const name of ['apple-touch-icon', 'pwa-192', 'pwa-512', 'pwa-maskable-512']) {
+  const from = join(dist, `${name}.png`);
+  const file = `icons/${name}.${shortHash(readFileSync(from))}.png`;
+  renameSync(from, join(dist, file));
+  icon[name] = `${base}/${file}`;
+}
 
 const manifest = {
   name: 'FarmingCompanion',
@@ -27,18 +39,21 @@ const manifest = {
   background_color: BG,
   theme_color: THEME,
   icons: [
-    { src: `${base}/pwa-192.png`, sizes: '192x192', type: 'image/png' },
-    { src: `${base}/pwa-512.png`, sizes: '512x512', type: 'image/png' },
-    { src: `${base}/pwa-maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    { src: icon['pwa-192'], sizes: '192x192', type: 'image/png' },
+    { src: icon['pwa-512'], sizes: '512x512', type: 'image/png' },
+    { src: icon['pwa-maskable-512'], sizes: '512x512', type: 'image/png', purpose: 'maskable' },
   ],
 };
-writeFileSync(join(dist, 'manifest.webmanifest'), JSON.stringify(manifest, null, 2));
+const manifestJson = JSON.stringify(manifest, null, 2);
+const manifestFile = `manifest.${shortHash(manifestJson)}.webmanifest`;
+writeFileSync(join(dist, manifestFile), manifestJson);
 
 // <head> : manifest, icône iPhone, plein écran, enregistrement du service worker.
 const head = `
 <meta name="theme-color" content="${THEME}">
-<link rel="manifest" href="${base}/manifest.webmanifest">
-<link rel="apple-touch-icon" href="${base}/apple-touch-icon.png">
+<link rel="manifest" href="${base}/${manifestFile}">
+<link rel="apple-touch-icon" sizes="180x180" href="${icon['apple-touch-icon']}">
+<link rel="icon" type="image/png" sizes="192x192" href="${icon['pwa-192']}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Farming">
